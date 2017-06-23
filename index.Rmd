@@ -66,7 +66,7 @@ dim(TestSet)
 
 
 ```
-# Create a Decision Tree
+# Creating a Decision Tree
 
 ```{r}
 
