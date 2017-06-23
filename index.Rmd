@@ -26,7 +26,7 @@ library(rpart.plot)
 
 ```
 
-# Loading data and preprocessing
+# Loading and preprocessing the data 
 
 ```{r}
 # set the URL for the download
@@ -37,6 +37,30 @@ Test  <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 training <- read.csv(url(Train))
 testing  <- read.csv(url(Test))
 
+# remove variables that are NA
+var_na   <- sapply(training, function(x) mean(is.na(x))) > 0.95
+training <- training[, var_na==FALSE]
+testing  <- testing[, var_na==FALSE]
+
+# remove identification variables
+training <- training[, -(1:5)]
+testing  <- testing[, -(1:5)]
+
+# remove variables with near zero variance
+nzv <- nearZeroVar(training)
+training <- training[, -nzv]
+testing  <- testing[, -nzv]
+
+
+dim(training)
+dim(testing)
+
+
+```
+# Data partition for Cross-validation 
+The training data is split into two data sets, for training the model and for testing the performance of our model. The data is partitioned by the classe variable, which is the variable we will be predicting. The data is split into 70% for training and 30% for testing.
+
+```{r}
 # create a partition with the training dataset 
 inTrain  <- createDataPartition(training$classe, p=0.7, list=FALSE)
 TrainSet <- training[inTrain, ]
@@ -45,28 +69,11 @@ TestSet  <- training[-inTrain, ]
 
 dim(TrainSet)
 dim(TestSet)
-
-# remove variables that are NA
-var_na   <- sapply(TrainSet, function(x) mean(is.na(x))) > 0.95
-TrainSet <- TrainSet[, var_na==FALSE]
-TestSet  <- TestSet[, var_na==FALSE]
-
-# remove identification variables
-TrainSet <- TrainSet[, -(1:5)]
-TestSet  <- TestSet[, -(1:5)]
-
-# remove variables with near zero variance
-nzv <- nearZeroVar(TrainSet)
-TrainSet <- TrainSet[, -nzv]
-TestSet  <- TestSet[, -nzv]
-
-
-dim(TrainSet)
-dim(TestSet)
-
-
 ```
+
 # Creating a Decision Tree
+To predict the classe variable, a Decision Tree is build.
+
 
 ```{r}
 
@@ -80,9 +87,9 @@ confMatDecTree <- confusionMatrix(predictDecTree, TestSet$classe)
 confMatDecTree
     
 ```
-###The accuracy is with 0.5854 low.
+###The accuracy of the Decision Tree model is 0.564.
 
-###We generate now a Gradient boosted Tree model.
+###Now a Gradient Boosted Tree model is generated.
 
 # Generating a Gradient Boosted Tree model
 
@@ -99,7 +106,7 @@ confMatBoostTree
 
 ```
 
-###The Gradient Boosted Tree model has a better accuracy : 0.9847
+###The Gradient Boosted Tree model has a better accuracy : 0.9898
 
 # Applying the Gradient Boosted Tree model to the 20 test cases
 
